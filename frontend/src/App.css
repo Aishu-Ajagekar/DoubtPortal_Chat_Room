@@ -1,0 +1,30 @@
+/* Base smooth transition */
+body {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Light mode styles */
+body.light-mode {
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: #121212;
+  color: #f1f1f1;
+}
+
+/* Card & navbar support */
+.card.dark, .navbar.dark {
+  background-color: #1e1e1e !important;
+  color: white !important;
+}
+
+.card.light, .navbar.light {
+  background-color: white !important;
+  color: black !important;
+}
+
+
+
