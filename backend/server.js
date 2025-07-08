@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const dbConnect = require("./config/db");
 const Message = require("./models/Message");
 const User = require("./models/User");
+const Topic = require("./models/Topic");
 
 dotenv.config();
 dbConnect();
@@ -23,6 +24,7 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
+// Routes
 app.use("/api/v1/auth", require("./routes/authRoutes"));
 app.use("/api/v1/topics", require("./routes/topicRoutes"));
 app.use("/api/v1/messages", require("./routes/messageRoutes"));
@@ -31,9 +33,10 @@ app.get("/", (req, res) => {
   res.send("✅ API is running...");
 });
 
-const connectedMentors = new Map();      // socket.id -> mentorId
-const connectedStudents = new Map();     // socket.id -> studentId
-const pendingRequests = new Map();       // mentorId -> [{ studentId, studentName }]
+// ========== SOCKET.IO ==========
+const connectedMentors = new Map(); // socket.id -> mentorId
+const connectedStudents = new Map(); // socket.id -> studentId
+const pendingRequests = new Map(); // mentorId -> [{ studentId, studentName }]
 
 const getMentorSocketById = (mentorId) => {
   for (const [socketId, id] of connectedMentors.entries()) {
@@ -100,15 +103,37 @@ io.on("connection", (socket) => {
   });
 
   // ✅ Mentor accepts chat request
-  socket.on("chat-request-accepted", ({ mentorId, studentId }) => {
-    const studentSocketId = getStudentSocketById(studentId);
-    const topicId = `${mentorId}_${studentId}`;
-    if (studentSocketId) {
-      io.to(studentSocketId).emit("chat-request-accepted", { mentorId, topicId });
-    }
-    const mentorSocketId = getMentorSocketById(mentorId);
-    if (mentorSocketId) {
-      io.to(mentorSocketId).emit("open-chat-room", { topicId });
+  socket.on("chat-request-accepted", async ({ mentorId, studentId }) => {
+    try {
+      const topicName = `${mentorId}_${studentId}`;
+
+      let topic = await Topic.findOne({ name: topicName });
+
+      if (!topic) {
+        topic = await Topic.create({
+          name: topicName,
+          createdBy: mentorId,
+        });
+      }
+
+      const topicId = topic._id.toString(); // ObjectId string
+
+      // 🚀 Notify student
+      const studentSocketId = getStudentSocketById(studentId);
+      if (studentSocketId) {
+        io.to(studentSocketId).emit("chat-request-accepted", {
+          mentorId,
+          topicId,
+        });
+      }
+
+      // 🚀 Notify mentor
+      const mentorSocketId = getMentorSocketById(mentorId);
+      if (mentorSocketId) {
+        io.to(mentorSocketId).emit("open-chat-room", { topicId });
+      }
+    } catch (error) {
+      console.error("❌ Error in chat-request-accepted:", error.message);
     }
   });
 
@@ -120,14 +145,14 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ❎ Manual logout (handled via socket event from frontend)
+  // ❎ Manual logout
   socket.on("mentor-offline", async (mentorId) => {
     await User.findByIdAndUpdate(mentorId, { status: "offline" });
     io.emit("mentor-status-updated", { mentorId, status: "offline" });
     console.log("🔴 Mentor manually logged out:", mentorId);
   });
 
-  // ❎ Disconnect (tab close or reload)
+  // ❎ Disconnect cleanup
   socket.on("disconnect", async () => {
     const mentorId = connectedMentors.get(socket.id);
     const studentId = connectedStudents.get(socket.id);
@@ -146,6 +171,7 @@ io.on("connection", (socket) => {
   });
 });
 
+// 🚀 Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () =>
   console.log(`🚀 Server running at http://localhost:${PORT}`)

@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 import "../../public/css/Register.css"; // optional if styling separately
+import Swal from "sweetalert2";
 
 function RegisterCard() {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ function RegisterCard() {
     email: "",
     password: "",
     role: "student",
-    course : ""
+    course: "",
   });
 
   const handleChange = (e) => {
@@ -29,10 +30,20 @@ function RegisterCard() {
         `${import.meta.env.VITE_API_URL}/api/v1/auth/register`,
         formData
       );
-      alert("Registered successfully! Please login.");
+      // alert("Registered successfully! Please login.");
+      Swal.fire(
+        "Success",
+        "Registered successfully! Please login.!",
+        "success"
+      );
       window.location.href = "/login";
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      // alert(err.response?.data?.message || "Registration failed");
+      Swal.fire(
+        "Error",
+        err.response?.data?.message || "Registration failed",
+        "error"
+      );
     }
   };
 
