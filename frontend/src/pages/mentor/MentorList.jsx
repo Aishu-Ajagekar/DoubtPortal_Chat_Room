@@ -134,8 +134,6 @@ const MentorList = () => {
 
 export default MentorList; */
 
-
-
 /*import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { FaCircle, FaUserTie } from "react-icons/fa";
@@ -306,11 +304,15 @@ import { FaCircle, FaUserTie } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import Swal from "sweetalert2";
+import { useMentor } from "../../context/MentorContext";
+import { useTopic } from "../../context/TopicContent";
 
 const MentorList = () => {
   const [mentors, setMentors] = useState([]);
   const navigate = useNavigate();
   const socketRef = useRef(null);
+  const { mentorId, setMentorId } = useMentor();
+  const { topicId } = useTopic();
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -339,40 +341,43 @@ const MentorList = () => {
 
     // ✅ Listen for live mentor status updates
     socketRef.current.on("mentor-status-updated", ({ mentorId, status }) => {
-  setMentors((prevMentors) => {
-    const updatedMentors = prevMentors.map((mentor) =>
-      mentor._id === mentorId ? { ...mentor, status } : mentor
-    );
+      setMentors((prevMentors) => {
+        const updatedMentors = prevMentors.map((mentor) =>
+          mentor._id === mentorId ? { ...mentor, status } : mentor
+        );
 
-    // ✅ Find mentor using updated list
-    const mentor = updatedMentors.find((m) => m._id === mentorId);
+        // ✅ Find mentor using updated list
+        const mentor = updatedMentors.find((m) => m._id === mentorId);
 
-    if (mentor) {
-      const statusLabel =
-        status === "online"
-          ? "🟢 Online"
-          : status === "busy"
-          ? "🟠 Busy"
-          : "🔴 Offline";
+        if (mentor) {
+          const statusLabel =
+            status === "online"
+              ? "🟢 Online"
+              : status === "busy"
+              ? "🟠 Busy"
+              : "🔴 Offline";
 
-      Swal.fire({
-        title: "Mentor Status Changed",
-        text: `${mentor.name} is now ${statusLabel}`,
-        icon: "info",
-        timer: 2000,
-        showConfirmButton: false,
+          Swal.fire({
+            title: "Mentor Status Changed",
+            text: `${mentor.name} is now ${statusLabel}`,
+            icon: "info",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        }
+
+        return updatedMentors;
       });
-    }
-
-    return updatedMentors;
-  });
-});
-
+    });
 
     // ✅ Navigate to chat when mentor accepts
-    socketRef.current.on("chat-request-accepted", ({ topicId }) => {
+    socketRef.current.on("chat-request-accepted", ({ mentorId }) => {
       console.log("✅ Chat request accepted, navigating to:", topicId);
-      navigate(`/student/chat/${topicId}`);
+      setMentorId(mentorId);
+      console.log(topicId)
+      const roomId = `${localStorage.getItem("userId")}#${mentorId}#${topicId}`;
+      console.log(roomId)
+      navigate(`/student/chat/${roomId}`);
     });
 
     return () => {
@@ -389,40 +394,48 @@ const MentorList = () => {
   };
 
   const handleChatNow = (mentorId) => {
-  const studentId = localStorage.getItem("userId");
-  const studentName = localStorage.getItem("name");
+    const studentId = localStorage.getItem("userId");
+    const studentName = localStorage.getItem("name");
+    setMentorId(mentorId);
+    const roomId = `${localStorage.getItem("userId")}#${mentorId}#${topicId}`;
+          console.log(roomId)
 
-  if (!studentId || !studentName) {
-    return Swal.fire("Error", "Student info not found. Please login again.", "error");
-  }
+    if (!studentId || !studentName) {
+      return Swal.fire(
+        "Error",
+        "Student info not found. Please login again.",
+        "error"
+      );
+    }
 
-  if (!socketRef.current || !socketRef.current.connected) {
-    socketRef.current = io(import.meta.env.VITE_API_URL);
-    socketRef.current.on("connect", () => {
-      console.log("🔗 Student socket connected:", socketRef.current.id);
-      
+    if (!socketRef.current || !socketRef.current.connected) {
+      socketRef.current = io(import.meta.env.VITE_API_URL);
+      socketRef.current.on("connect", () => {
+        console.log("🔗 Student socket connected:", socketRef.current.id);
+
+        socketRef.current.emit("student-online", studentId); // ✅ Send this
+        console.log(roomId)
+        socketRef.current.emit("chat-request", {
+          studentId,
+          "studentName": roomId,
+          mentorId,
+          topicId
+        });
+
+        Swal.fire("Request Sent!", "Mentor will be notified.", "success");
+      });
+    } else {
+      console.log("📤 Emitting chat-request from student:", studentName);
       socketRef.current.emit("student-online", studentId); // ✅ Send this
       socketRef.current.emit("chat-request", {
         studentId,
-        studentName,
+        "studentName": roomId,
         mentorId,
       });
 
       Swal.fire("Request Sent!", "Mentor will be notified.", "success");
-    });
-  } else {
-    console.log("📤 Emitting chat-request from student:", studentName);
-    socketRef.current.emit("student-online", studentId); // ✅ Send this
-    socketRef.current.emit("chat-request", {
-      studentId,
-      studentName,
-      mentorId,
-    });
-
-    Swal.fire("Request Sent!", "Mentor will be notified.", "success");
-  }
-};
-
+    }
+  };
 
   return (
     <div className="container mt-5">

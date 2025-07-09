@@ -27,10 +27,23 @@ exports.getTopicsByCourse = (req, res) => {
   const { course } = req.params;
 
   const courseTopics = {
-    "MERN Full Stack": ["React", "Node.js", "MongoDB", "Express"],
-    "Python Full Stack": ["Django", "Flask", "PostgreSQL"],
-    "Java Full Stack": ["Spring Boot", "Hibernate", "MySQL"]
-  };
+  "MERN Full Stack": [
+    { id: "1a2b3c4d-mern-react", name: "React" },
+    { id: "2b3c4d5e-mern-node", name: "Node.js" },
+    { id: "3c4d5e6f-mern-mongo", name: "MongoDB" },
+    { id: "4d5e6f7g-mern-express", name: "Express" },
+  ],
+  "Python Full Stack": [
+    { id: "5e6f7g8h-python-django", name: "Django" },
+    { id: "6f7g8h9i-python-flask", name: "Flask" },
+    { id: "7g8h9i0j-python-postgres", name: "PostgreSQL" },
+  ],
+  "Java Full Stack": [
+    { id: "8h9i0j1k-java-spring", name: "Spring Boot" },
+    { id: "9i0j1k2l-java-hibernate", name: "Hibernate" },
+    { id: "0j1k2l3m-java-mysql", name: "MySQL" },
+  ]
+};
 
   const topics = courseTopics[course];
   if (!topics) {

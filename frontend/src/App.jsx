@@ -17,20 +17,26 @@ function App() {
     document.body.className = theme === "dark" ? "dark-mode" : "light-mode";
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  // const [topicId, setTopicId] = useState("");
+  // const [mentorId, setMentorId] = useState("");
   return (
     <>
-      <Router>
+      {/* <Router> */}
         <Navbar theme={theme} setTheme={setTheme} />
         <Routes>
           <Route path="/" element={<Register theme={theme} />} />
           <Route path="/register" element={<Register theme={theme} />} />
           <Route path="/login" element={<Login theme={theme} />} />
-          <Route path="/student-dashboard" element={<StudentDashboard />} />
-          <Route path="/student/chat/:topicId" element={<StudentChat theme={theme} />} />
+          <Route path="/student-dashboard" element={<StudentDashboard/>} />
+          <Route
+            path="/student/chat/:topicId"
+            element={<StudentChat theme={theme} />}
+          />
           <Route path="/mentor" element={<MentorDashboard theme={theme} />} />
-          <Route path="/mentor/mentor-list" element={<MentorList />} />
-           {/* <Route path="/chat/:topicId" element={<StudentChat />} /> */}
-           <Route path="/chat/:topicId" element={<ChatRoom />} />
+          <Route path="/mentor/mentor-list" element={<MentorList/>} />
+          {/* <Route path="/chat/:topicId" element={<StudentChat />} /> */}
+          <Route path="/chat/:topicId" element={<ChatRoom/>} />
           {/* <Route
           path="/student"
           element={
@@ -40,7 +46,7 @@ function App() {
           }
         /> */}
         </Routes>
-      </Router>
+      {/* </Router> */}
     </>
   );
 }

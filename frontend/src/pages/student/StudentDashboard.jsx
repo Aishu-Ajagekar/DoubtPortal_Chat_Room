@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useTopic } from "../../context/TopicContent";
 
 const StudentDashboard = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [topics, setTopics] = useState([]);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const { setTopicId } = useTopic();
 
   const courses = ["MERN Full Stack", "Python Full Stack", "Java Full Stack"];
 
@@ -27,6 +29,7 @@ const StudentDashboard = () => {
           },
         }
       );
+      console.log(JSON.stringify(res.data));
       setTopics(res.data.topics);
     } catch (error) {
       console.error("Error fetching topics:", error);
@@ -34,6 +37,7 @@ const StudentDashboard = () => {
   };
 
   const handleTopicClick = (topic) => {
+    setTopicId(topic.id)
     navigate("/mentor/mentor-list");
   };
 
@@ -73,7 +77,7 @@ const StudentDashboard = () => {
                     onClick={() => handleTopicClick(topic)}
                     style={{ cursor: "pointer" }}
                   >
-                    <h6>{topic}</h6>
+                    <h6>{topic.name}</h6>
                   </div>
                 </div>
               ))

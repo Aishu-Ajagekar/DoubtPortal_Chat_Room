@@ -4,7 +4,7 @@ import axios from "axios";
 import socket from "../utils/socket"; // your socket instance
 
 const ChatRoom = () => {
-  const { topicId } = useParams();
+  const { roomId: topicId } = useParams();
   const [chat, setChat] = useState([]);
   const [msg, setMsg] = useState("");
   const [topicName, setTopicName] = useState("");

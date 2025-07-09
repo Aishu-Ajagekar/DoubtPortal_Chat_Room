@@ -164,10 +164,15 @@ const MentorDashboard = () => {
           socket.emit("chat-request-accepted", {
             mentorId,
             studentId,
+            studentName
           });
 
-          const topicId = `${mentorId}_${studentId}`;
+          // const topicId = `${mentorId}_${studentId}`;
+          // Below is studentname is roomid
+          // TODO: make it as roomid and sent it
+          const topicId = studentName;
           // const topicId = res.data.topicId;
+
           navigate(`/chat/${topicId}`);
         } else {
           // ❌ Notify student of rejection

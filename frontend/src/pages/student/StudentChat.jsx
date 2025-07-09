@@ -175,7 +175,6 @@
 
 // export default StudentChat;
 
-
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import socket from "../../utils/socket"; // shared socket instance
@@ -274,11 +273,19 @@ const StudentChat = () => {
   const sendMessage = () => {
     if (!msg.trim()) return;
 
+    // socket.emit("send-message", {
+    //   room: selectedTopic,
+    //   message: msg,
+    //   senderName: name,
+    //   senderRole: role,
+    // });
+
     socket.emit("send-message", {
-      room: selectedTopic,
+      room: "selectedTopic#selectedTopic1#selectedTopic2",
       message: msg,
-      senderName: name,
-      senderRole: role,
+      studentId: "",
+      mentorId: "",
+      roomId: "",
     });
 
     setMsg("");
@@ -286,23 +293,23 @@ const StudentChat = () => {
 
   return (
     <div className="container py-5">
-      <h3 className="mb-4">🧠 Select a Topic</h3>
+      <h3 className="mb-4">🧠 chat Room</h3>
 
-      <select
+      {/* <select
         className="form-select mb-3"
         onChange={(e) => setSelectedTopic(e.target.value)}
         value={selectedTopic}
         disabled={!!topicId} // ✅ Disable select if topic from URL
       >
-        <option value="">-- Select a Subject Room --</option>
+        <option value="">--  Room Id --</option>
         {topics.map((topic) => (
           <option key={topic._id} value={topic._id}>
             {topic.name}
           </option>
         ))}
-      </select>
+      </select> */}
 
-      {selectedTopic && (
+      {/* {selectedTopic && ( */}
         <>
           <div
             className="border rounded p-3 mb-3"
@@ -361,10 +368,9 @@ const StudentChat = () => {
             </button>
           </div>
         </>
-      )}
+      {/* )} */}
     </div>
   );
 };
 
 export default StudentChat;
-
