@@ -375,7 +375,7 @@ const MentorList = () => {
       console.log("✅ Chat request accepted, navigating to:", topicId);
       setMentorId(mentorId);
       console.log(topicId)
-      const roomId = `${localStorage.getItem("userId")}#${mentorId}#${topicId}`;
+      const roomId = `${localStorage.getItem("userId")}_${mentorId}_${topicId}`;
       console.log(roomId)
       navigate(`/student/chat/${roomId}`);
     });
@@ -397,7 +397,7 @@ const MentorList = () => {
     const studentId = localStorage.getItem("userId");
     const studentName = localStorage.getItem("name");
     setMentorId(mentorId);
-    const roomId = `${localStorage.getItem("userId")}#${mentorId}#${topicId}`;
+    const roomId = `${localStorage.getItem("userId")}_${mentorId}_${topicId}`;
           console.log(roomId)
 
     if (!studentId || !studentName) {

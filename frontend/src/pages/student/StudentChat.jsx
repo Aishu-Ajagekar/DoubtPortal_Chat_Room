@@ -281,7 +281,7 @@ const StudentChat = () => {
     // });
 
     socket.emit("send-message", {
-      room: "selectedTopic#selectedTopic1#selectedTopic2",
+      room: "selectedTopic_selectedTopic1_selectedTopic2",
       message: msg,
       studentId: "",
       mentorId: "",

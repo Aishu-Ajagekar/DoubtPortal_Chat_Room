@@ -5,6 +5,7 @@ import socket from "../utils/socket"; // your socket instance
 
 const ChatRoom = () => {
   const { roomId: topicId } = useParams();
+  const data = useParams();
   const [chat, setChat] = useState([]);
   const [msg, setMsg] = useState("");
   const [topicName, setTopicName] = useState("");
@@ -24,14 +25,17 @@ const ChatRoom = () => {
 
   useEffect(() => {
     if (!topicId) return;
-
     socket.emit("join-room", topicId);
 
     const fetchMessages = async () => {
       try {
+        console.log("Topic Id while fething messages", topicId)
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/v1/messages/${topicId}`,
+          `${import.meta.env.VITE_API_URL}/api/v1/messages`,
           {
+            params: {
+              topicId
+            },
             headers: {
               Authorization: token,
             },
@@ -75,9 +79,10 @@ const ChatRoom = () => {
   };
 
   const sendMessage = () => {
+    console.log("send message topic id", data)
     if (!msg.trim()) return;
     socket.emit("send-message", {
-      room: topicId,
+      roomId: data.topicId,
       message: msg,
       senderName,
       senderRole,
@@ -87,7 +92,7 @@ const ChatRoom = () => {
 
   return (
     <div className="container mt-4">
-      <h4 className="mb-3">🔗 Chat Room - {topicName}</h4>
+      <h4 className="mb-3">🔗 Chat Room - {topicId}</h4>
 
       <div
         className="border rounded p-3 mb-3"
