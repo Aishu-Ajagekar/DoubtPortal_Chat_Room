@@ -86,15 +86,15 @@ io.on("connection", (socket) => {
   // 📩 Student initiates chat request
   socket.on("chat-request", ({ studentId, mentorId, studentName, topicId }) => {
     const mentorSocketId = getMentorSocketById(mentorId);
-    console.log("This is room Id : ",studentName)
+    console.log("This is room Id : ", studentName);
     if (mentorSocketId) {
-      // student id is room id 
+      // student id is room id
       // TODO: send the key as roomId and check once
       io.to(mentorSocketId).emit("chat-request-received", {
         studentId,
         studentName,
         mentorId,
-        topicId
+        topicId,
       });
       console.log("📩 Sent to mentor:", studentName);
     } else {
@@ -109,12 +109,12 @@ io.on("connection", (socket) => {
   // socket for send message and store the same in mongodb
   socket.on("send-message", async ({ roomId, message }) => {
     let fetchedRoom = await Message.findById(roomId);
-
+    console.log("send-message room id from server js",roomId, message);
     if (!fetchedRoom) {
-      const [studentId, mentorId, topicId] = roomId.split("#");
+      const [studentId, mentorId, topicId] = roomId.split("_");
 
       fetchedRoom = await Message.create({
-        _id: roomId,
+        customId: roomId,
         topicId,
         student: studentId,
         mentor: mentorId,
@@ -129,41 +129,47 @@ io.on("connection", (socket) => {
     return fetchedRoom;
   });
   // ✅ Mentor accepts chat request
-  socket.on("chat-request-accepted", async ({ mentorId, studentId, studentName }) => {
-    try {
-      console.log("Room Id : ",studentName)
-      const topicName = `${mentorId}_${studentId}`;
+  socket.on(
+    "chat-request-accepted",
+    async ({ mentorId, studentId, studentName }) => {
+      try {
+        console.log("Room Id : ", studentName);
+        const topicName = `${mentorId}_${studentId}`;
 
-      let topic = await Topic.findOne({ name: topicName });
+        let topic = await Topic.findOne({ name: topicName });
 
-      if (!topic) {
-        topic = await Topic.create({
-          name: topicName,
-          createdBy: mentorId,
-        });
+        if (!topic) {
+          topic = await Topic.create({
+            name: topicName,
+            createdBy: mentorId,
+          });
+        }
+
+        const topicId = topic._id.toString(); // ObjectId string
+
+        // 🚀 Notify student
+        const studentSocketId = getStudentSocketById(studentId);
+        if (studentSocketId) {
+          io.to(studentSocketId).emit("chat-request-accepted", {
+            mentorId,
+            topicId,
+            studentName,
+          });
+        }
+
+        // 🚀 Notify mentor
+        const mentorSocketId = getMentorSocketById(mentorId);
+        if (mentorSocketId) {
+          io.to(mentorSocketId).emit("open-chat-room", {
+            topicId,
+            studentName,
+          });
+        }
+      } catch (error) {
+        console.error("❌ Error in chat-request-accepted:", error.message);
       }
-
-      const topicId = topic._id.toString(); // ObjectId string
-
-      // 🚀 Notify student
-      const studentSocketId = getStudentSocketById(studentId);
-      if (studentSocketId) {
-        io.to(studentSocketId).emit("chat-request-accepted", {
-          mentorId,
-          topicId,
-          studentName
-        });
-      }
-
-      // 🚀 Notify mentor
-      const mentorSocketId = getMentorSocketById(mentorId);
-      if (mentorSocketId) {
-        io.to(mentorSocketId).emit("open-chat-room", { topicId, studentName });
-      }
-    } catch (error) {
-      console.error("❌ Error in chat-request-accepted:", error.message);
     }
-  });
+  );
 
   // ❌ Mentor rejects chat request
   socket.on("chat-request-rejected", ({ mentorId, studentId }) => {

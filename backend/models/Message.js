@@ -34,6 +34,10 @@ const messageSchema = new mongoose.Schema(
 const chatSchema = new mongoose.Schema(
   {
     // topic: { type: mongoose.Schema.Types.ObjectId, ref: "Topic", required: true },
+    customId: {
+      type: String,
+      required: true
+    },
     topicId: {
       type: String,
       required: true,

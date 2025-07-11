@@ -56,7 +56,8 @@ payload should contain below param
 */
 exports.getMessagesByTopic = async (req, res) => {
   const { topicId: roomId } = req.params;
-
+  console.log("room id: hello", req.params.topicId);
+  console.log()
   try {
     //   const topic = await Topic.findOne({ name: topicId });
 
@@ -76,10 +77,10 @@ exports.getMessagesByTopic = async (req, res) => {
     let fetchedRoom = await Message.findById(roomId);
 
     if (!fetchedRoom) {
-      const [studentId = "", mentorId = "", topicId = ""] = roomId.split("#");
+      const [studentId = "", mentorId = "", topicId = ""] = roomId.split("_");
 
       fetchedRoom = await Message.create({
-        _id: roomId,
+        customId: roomId,
         topicId,
         student: studentId,
         mentor: mentorId,
@@ -90,6 +91,7 @@ exports.getMessagesByTopic = async (req, res) => {
       fetchedRoom
     });
   } catch (err) {
+    console.log(err)
     console.log("Error while fetching topic id : ", roomId);
     console.log("Error message", err.message);
   }
